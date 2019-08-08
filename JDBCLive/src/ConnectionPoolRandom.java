@@ -1,13 +1,12 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Stack;
 
-public class ConnectionPool {
+public class ConnectionPoolRandom {
 	
-	private static List<Connection>freeConnections = new ArrayList<Connection>();  //can use stack to reduce connection
-	private static List<Connection>usedConnections = new ArrayList<Connection>();
+	private static Stack<Connection> freeConnections = new Stack<Connection>();  //can use stack to reduce connection
+	private static Stack<Connection> usedConnections = new Stack<Connection>();
 	
 	private final int MAX_CONNECTIONS = 5;
 	
@@ -15,17 +14,17 @@ public class ConnectionPool {
 	private final static String user = "postgres";
 	private final static String password = "admin";
 	
-	public ConnectionPool() throws SQLException {
+	public ConnectionPoolRandom() throws SQLException {
 
 		for (int count = 0; count <MAX_CONNECTIONS; count++) {
-			freeConnections.add(DriverManager.getConnection(url, user, password));
+			freeConnections.push(DriverManager.getConnection(url, user, password));
 		}
 	}
 	
 	public boolean returnConnection(Connection conn) {
 		if (conn != null) {
-			usedConnections.remove(conn);
-			freeConnections.add(conn);
+			usedConnections.pop();
+			freeConnections.push(conn);
 			return true;
 		}
 		return false;
@@ -36,10 +35,8 @@ public class ConnectionPool {
 			System.out.println("No free connections available!");
 			return null;
 		} else {
-			Connection conn = 
-			freeConnections.remove(
-				freeConnections.size() - 1);
-			usedConnections.add(conn);
+			Connection conn = freeConnections.pop();
+			usedConnections.push(conn);
 			return conn;
 		}
 	}
@@ -51,20 +48,19 @@ public class ConnectionPool {
 	
 	public static void main(String[] args) throws SQLException {
 		
-		ConnectionPool pool = new ConnectionPool();
-		Connection conn1 = ConnectionPool.getConnection();
-		Connection conn2 = ConnectionPool.getConnection();
+		ConnectionPoolRandom pool = new ConnectionPoolRandom();
+		Connection conn1 = ConnectionPoolRandom.getConnection();
+		Connection conn2 = ConnectionPoolRandom.getConnection();
 		System.out.println(pool.getFreeConnectionCount());
-		Connection conn3 = ConnectionPool.getConnection();
-		Connection conn4 = ConnectionPool.getConnection();
-		Connection conn5 = ConnectionPool.getConnection();
-		Connection conn6 = ConnectionPool.getConnection();
+		Connection conn3 = ConnectionPoolRandom.getConnection();
+		Connection conn4 = ConnectionPoolRandom.getConnection();
+		Connection conn5 = ConnectionPoolRandom.getConnection();
+		System.out.println(pool.getFreeConnectionCount());
+		Connection conn6 = ConnectionPoolRandom.getConnection();
 		System.out.println(pool.getFreeConnectionCount());
 		pool.returnConnection(conn1);
 		pool.returnConnection(conn2);
 		pool.returnConnection(conn4);
 		System.out.println(pool.getFreeConnectionCount());
-		
-		
 		}
 }
